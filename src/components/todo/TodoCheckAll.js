@@ -1,18 +1,21 @@
 import React from 'react';
 import TodosRemaining from "./TodosRemaining";
+import {observer,inject} from "mobx-react";
 
-const TodoCheckAll = props => {
+const TodoCheckAll =  inject('TodoStore')(observer(props => {
+    const TodoStore = props.TodoStore;
+
     return (
         <div className="extra-container">
             <div>
                 <label>
-                    <input type="checkbox" checked={!props.anyRemaining()} onClick={(event) => props.checkAllTodo()}/>
+                    <input type="checkbox" checked={!TodoStore.anyRemaining} onClick={(event) => TodoStore.checkAllTodo()}/>
                     Check All
                 </label>
             </div>
-            <TodosRemaining remaining = {props.remaining()}/>
+            <TodosRemaining remaining = {TodoStore.remaining}/>
         </div>
     );
-};
+}));
 
 export default TodoCheckAll;
