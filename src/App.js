@@ -10,7 +10,6 @@ import {inject,observer} from "mobx-react";
 class App extends Component{
    render() {
        const TodoStore = this.props.TodoStore;
-       console.log(TodoStore.todos);
        return (
            <div className="App">
                <header className="App-header">
@@ -21,8 +20,6 @@ class App extends Component{
            </div>
        );
    };
-
-
 }
 
 export default App;

@@ -6,7 +6,6 @@ import * as serviceWorker from './serviceWorker';
 import {Provider} from "mobx-react";
 import TodoStore from "./stores/TodoStore";
 
-console.log(TodoStore.todos);
 const Root = (
   <Provider TodoStore = {TodoStore} >
   <App/>

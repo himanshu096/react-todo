@@ -1,26 +1,16 @@
 import React from 'react';
-import { observable, action, computed } from 'mobx';
+import { observable, action, computed,configure,runInAction } from 'mobx';
+import {addTodo,db,getFirebaseTodos,deleteTodo,updateTodo} from '../firebase';
+configure({enforceActions: true});
 
 class TodoStore {
   @observable todoInput =  React.createRef();
   @observable filter = 'all';
-  @observable idForTodo = 3;
+  @observable isLoading = false;
   @observable todos = [
-    {
-      'id': 1,
-      'title': 'Finish MobX Screencast',
-      'completed': false,
-      'editing': false,
-    },
-    {
-      'id': 2,
-      'title': 'Take over MobX world',
-      'completed': false,
-      'editing': false,
-    },
   ];
 
-  @action addTodo = event => {
+  @action addTodo = async event => {
           if (event.key === "Enter") {
               const todoInputValue = this.todoInput.current.value;
 
@@ -28,32 +18,39 @@ class TodoStore {
               return;
               }
 
-              this.todos.push({
-              id:this.idForTodo,
-              title:todoInputValue,
-              editing:false,
-              completed:false,
-              });
 
-              this.idForTodo++;
-              this.todoInput.current.value = '';
+
+              var data  = await addTodo({
+                                    title:todoInputValue,
+                                    editing:false,
+                                    completed:false,
+                                    });
+
+               runInAction(()=>{
+                 this.todos.push(data);
+                this.todoInput.current.value = '';
+               });
+
           }
       };
 
   @action removeToDo = id => {
   const index = this.todos.findIndex(item => item.id === id);
+  deleteTodo(id);
             this.todos.splice(index, 1);
           };
 
   @action checkTodo = (todo, index, event) => {
   todo.completed = !todo.completed;
                     this.todos.splice(index, 1, todo);
+                    updateTodo(todo);
 
           };
 
   @action checkAllTodo = (event) => {
              this.todos.forEach((todo) => {
                                    todo.completed = true;
+                                   updateTodo(todo);
                                });
           };
 
@@ -68,6 +65,8 @@ class TodoStore {
               event.persist();
               todo.title = event.target.value;
                                 todo.editing = false;
+
+              updateTodo(todo);
 
                                 this.todos.splice(index, 1, todo);
           };
@@ -94,8 +93,23 @@ class TodoStore {
               }
           };
 
-  @action clearCompleted() {
-         return this.todos = this.todos.filter(todo => !todo.completed)};
+  @action clearCompleted = async() => {
+           var completed = this.todos.filter((todo => todo.completed));
+
+           for (var i = 0; i < completed.length; i++){
+               await deleteTodo(completed[i].id);
+           }
+        this.getData();
+         };
+
+  @action async getData()  {
+    this.isLoading = true;
+    var todoData = await getFirebaseTodos();
+    runInAction(()=>{
+    this.isLoading = false;
+    this.todos = todoData;
+    });
+          }
 }
 
 const store = new TodoStore();
